@@ -131,8 +131,40 @@ while True:
         limpar_tela()
         cabecalho()
         nomejogador()
-        print('\nEm breve')
-        input('\n\nPressione ENTER para voltar para o menu')
+        print('''
+            📖 COMO JOGAR POKER (Texas Hold'em simplificado)
+    
+            ➡️ OBJETIVO:
+            Formar a melhor mão de 5 cartas possível combinando suas 2 cartas com as 5 da mesa.
+            
+            ➡️ VALOR DAS MÃOS (do mais forte pro mais fraco):
+            10. Royal Flush (A K Q J 10 do mesmo naipe)
+             9. Straight Flush (5 cartas em sequência do mesmo naipe)
+             8. Quadra (4 cartas iguais)
+             7. Full House (trinca + par)
+             6. Flush (5 cartas do mesmo naipe)
+             5. Straight (5 cartas em sequência)
+             4. Trinca (3 cartas iguais)
+             3. Dois Pares (2 pares diferentes)
+             2. Um Par (2 cartas iguais)
+             1. Carta Alta (quando ninguém formou nada melhor)
+            
+            ➡️ COMO FUNCIONA A RODADA:
+            1. Cada jogador recebe 2 cartas.
+            2. São reveladas 5 cartas na mesa em etapas:
+               - Flop: 3 cartas
+               - Turn: +1 carta
+               - River: +1 carta
+            3. No fim, cada jogador monta a melhor mão de 5 cartas.
+            4. Quem tiver a mão mais forte leva o pote.
+            
+            ➡️ NO SEU JOGO:
+            - Você e a CPU pagam 50 fichas (blind) no início da rodada.
+            - Quem tiver a melhor mão leva todas as fichas do pote.
+            - Se empatar, o pote é dividido.
+
+            ''')
+        input('\nPressione ENTER para voltar ao menu')
 
     elif start == 1:
         limpar_tela()

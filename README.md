@@ -22,7 +22,7 @@ Durante o desenvolvimento:
 ---
 
 ## 📖 Como Jogar
-1. Inicie o programa
+1. Inicie o programa no Prompt de Comando
 2. Digite seu nome.
 3. Escolha **Iniciar Jogo**.
 4. Receba suas duas cartas (a mão da IA permanece oculta).

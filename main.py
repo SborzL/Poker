@@ -234,12 +234,8 @@ def avancar_rodada():
     elif rodada == "river":
         rodada = "resultado"
 
-# Inicializa partida
 nova_partida()
 
-# -------------------------------------------------------
-# Retângulos dos botões por tela (atualizados a cada frame)
-# -------------------------------------------------------
 rects_nome = {}
 rects_menu = {}
 rects_mesa = {}
@@ -247,30 +243,22 @@ rects_como = {}
 rects_cartas = {}
 rects_confirmacao = {}
 
-# -------------------------------------------------------
-# Telas
-# -------------------------------------------------------
 def desenhar_nome():
     tela.fill((0,0,50))
     titulo = fonte.render("Digite seu nome:", True, (255,255,255))
     tela.blit(titulo, (tela.get_width()//2 - titulo.get_width()//2, 200))
 
-    # Caixa de texto
     caixa = pygame.Rect(tela.get_width()//2 - 250, 300, 500, 60)
     pygame.draw.rect(tela, (255,255,255), caixa, 2)
     texto = fonte_media.render(entrada_texto, True, (255,255,255))
-    # Cortar texto se passar da caixa
     if texto.get_width() > caixa.width - 20:
-        # Reduzir visualmente: mostrar final do texto
         corte = entrada_texto[-30:]
         texto = fonte_media.render(corte, True, (255,255,255))
     tela.blit(texto, (caixa.x+10, caixa.y+10))
 
-    # Dica
     dica = fonte_pequena.render("Pressione Enter para confirmar.", True, (200,200,200))
     tela.blit(dica, (tela.get_width()//2 - dica.get_width()//2, 380))
 
-    # Botão confirmar
     rects_nome.clear()
     rects_nome["confirmar"] = desenhar_botao("Confirmar", 150, (0,100,0), (0,150,0))
     return "nome"
@@ -301,7 +289,6 @@ def desenhar_mesa():
     card_w, card_h = 80, 120
     espac = 20
 
-    # Cartas comunitárias
     tot_w = 5*card_w + 4*espac
     start_x = W//2 - tot_w//2
     y_middle = H//2 - card_h//2
@@ -309,7 +296,6 @@ def desenhar_mesa():
         carta_img = pygame.transform.scale(cartas[c], (card_w, card_h))
         tela.blit(carta_img, (start_x + i*(card_w+espac), y_middle))
 
-    # Cartas do jogador (embaixo)
     tot_w_j = 2*card_w + espac
     start_x_j = W//2 - tot_w_j//2
     y_player = H - card_h - 80
@@ -317,7 +303,6 @@ def desenhar_mesa():
         carta_img = pygame.transform.scale(cartas[c], (card_w, card_h))
         tela.blit(carta_img, (start_x_j + i*(card_w+espac), y_player))
 
-    # Cartas do computador (em cima)
     tot_w_i = 2*card_w + espac
     start_x_i = W//2 - tot_w_i//2
     y_ai = 120
@@ -325,11 +310,9 @@ def desenhar_mesa():
         carta_img = pygame.transform.scale(cartas[c], (card_w, card_h))
         tela.blit(carta_img, (start_x_i + i*(card_w+espac), y_ai))
 
-    # Fase atual
     fase_txt = fonte_pequena.render(f"Rodada: {rodada.upper()}", True, (255,255,255))
     tela.blit(fase_txt, (W//2 - fase_txt.get_width()//2, y_middle - 50))
 
-    # Resultado (após river)
     if rodada == "resultado":
         resultado, rj, ri = comparar_maos(jogador + comunitarias, ia + comunitarias)
         nome_j = nome_mao(rj)
@@ -349,7 +332,6 @@ def desenhar_mesa():
         vencedor = fonte.render(vencedor_txt, True, (255,255,255))
         tela.blit(vencedor, (W//2 - vencedor.get_width()//2, y_middle + card_h + 30))
 
-    # Botões de ação
     rects_mesa.clear()
     if rodada == "resultado":
         rects_mesa["acao"] = desenhar_botao("Nova partida", 220, (0,100,0), (0,150,0))
@@ -396,19 +378,16 @@ def desenhar_como_jogar():
         linha_rect = pygame.Rect(60, y_base + i*linha_altura - 10, tela.get_width()-120, linha_altura-10)
         pygame.draw.rect(tela, (45,45,45), linha_rect, border_radius=8)
 
-        # Cartas à esquerda
         x_cartas = 90
         for j, chave in enumerate(exemplo):
             if chave in cartas:
                 carta = pygame.transform.scale(cartas[chave], (50,70))
                 tela.blit(carta, (x_cartas + j*55, y_base + i*linha_altura))
 
-        # Texto ao lado das cartas
         texto = fonte_pequena.render(f"{i+1}. {nome} — {explicacao}", True, (230,230,230))
         x_texto = x_cartas + len(exemplo)*55 + 30
         tela.blit(texto, (x_texto, y_base + i*linha_altura + 20))
 
-    # Rodapé com crédito
     credito = fonte_pequena.render(
         'Pixel art poker cards: Vircon32 (Carra) — CC-BY 4.0 (OpenGameArt)',
         True, (180,180,180)
@@ -459,9 +438,6 @@ def desenhar_confirmacao():
     rects_confirmacao["nao"] = desenhar_botao("Não", 100, (100,0,0), (150,0,0))
     return "confirmacao"
 
-# -------------------------------------------------------
-# Loop principal
-# -------------------------------------------------------
 rodando = True
 while rodando:
     # Eventos
@@ -471,7 +447,6 @@ while rodando:
         elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_ESCAPE:
             rodando = False
 
-        # Entrada de texto na tela de nome
         if estado == "nome":
             if evento.type == pygame.KEYDOWN:
                 if evento.key == pygame.K_RETURN:
@@ -490,7 +465,6 @@ while rodando:
                         nome_jogador = entrada_texto.strip()
                         estado = "menu"
 
-        # Cliques nas demais telas
         elif evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
             if estado == "menu":
                 if rects_menu.get("jogar") and rects_menu["jogar"].collidepoint(evento.pos):
@@ -526,7 +500,6 @@ while rodando:
                 elif rects_confirmacao.get("nao") and rects_confirmacao["nao"].collidepoint(evento.pos):
                     estado = "mesa"
 
-    # Desenhar tela atual
     if estado == "nome":
         desenhar_nome()
     elif estado == "menu":

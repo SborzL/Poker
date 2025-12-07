@@ -1,4 +1,4 @@
-import pygame, sys, random
+import pygame, sys, random, textwrap
 from collections import Counter
 
 pygame.init()
@@ -31,6 +31,7 @@ def carregar_cartas_spritesheet(caminho):
     return cartas
 
 cartas = carregar_cartas_spritesheet("assets/cartas.png")
+verso = pygame.image.load("assets/verso.png").convert_alpha()
 
 def desenhar_botao(texto, y_offset, cor_normal, cor_hover):
     largura_botao, altura_botao = 320, 70
@@ -45,6 +46,16 @@ def desenhar_botao(texto, y_offset, cor_normal, cor_hover):
     txt = fonte_media.render(texto, True, (255,255,255))
     tela.blit(txt, (x + (largura_botao - txt.get_width())//2,
                     y + (altura_botao - txt.get_height())//2))
+    return rect
+
+def desenhar_botao_lado(texto, x, y, cor_normal, cor_hover, largura=220, altura=60):
+    rect = pygame.Rect(x, y, largura, altura)
+    mouse = pygame.mouse.get_pos()
+    cor = cor_normal if not rect.collidepoint(mouse) else cor_hover
+    pygame.draw.rect(tela, cor, rect, border_radius=10)
+    txt = fonte_media.render(texto, True, (255,255,255))
+    tela.blit(txt, (x + (largura - txt.get_width())//2,
+                    y + (altura - txt.get_height())//2))
     return rect
 
 def desenhar_botao_x():
@@ -243,6 +254,8 @@ rects_como = {}
 rects_cartas = {}
 rects_confirmacao = {}
 
+como_pagina = 0
+
 def desenhar_nome():
     tela.fill((0,0,50))
     titulo = fonte.render("Digite seu nome:", True, (255,255,255))
@@ -307,7 +320,10 @@ def desenhar_mesa():
     start_x_i = W//2 - tot_w_i//2
     y_ai = 120
     for i, c in enumerate(ia):
-        carta_img = pygame.transform.scale(cartas[c], (card_w, card_h))
+        if rodada != "resultado":
+            carta_img = pygame.transform.scale(verso, (card_w, card_h))
+        else:
+            carta_img = pygame.transform.scale(cartas[c], (card_w, card_h))
         tela.blit(carta_img, (start_x_i + i*(card_w+espac), y_ai))
 
     fase_txt = fonte_pequena.render(f"Rodada: {rodada.upper()}", True, (255,255,255))
@@ -341,58 +357,171 @@ def desenhar_mesa():
     return "mesa"
 
 def desenhar_como_jogar():
+    global como_pagina
     tela.fill((30,30,30))
     desenhar_nome_canto()
-    titulo = fonte.render("Como jogar — Hierarquia das mãos", True, (255,255,255))
+    titulo = fonte.render("Como jogar — Informação", True, (255,255,255))
     tela.blit(titulo, (tela.get_width()//2 - titulo.get_width()//2, 30))
-
-    hierarquia = [
-        ("Royal Flush", "A, K, Q, J, 10 do mesmo naipe. Imbatível.",
-         ["A_espadas","K_espadas","Q_espadas","J_espadas","10_espadas"]),
-        ("Sequência de mesmo naipe", "Cinco cartas consecutivas do mesmo naipe.",
-         ["5_copas","6_copas","7_copas","8_copas","9_copas"]),
-        ("Quadra", "Quatro cartas do mesmo valor.",
-         ["9_ouros","9_paus","9_copas","9_espadas"]),
-        ("Full House", "Trinca + Par (ex.: Q-Q-Q e 2-2).",
-         ["Q_ouros","Q_paus","Q_copas","2_espadas","2_copas"]),
-        ("Cor (Flush)", "Cinco cartas do mesmo naipe, não consecutivas.",
-         ["2_paus","5_paus","9_paus","J_paus","K_paus"]),
-        ("Sequência", "Cinco cartas consecutivas (naipes variados).",
-         ["4_ouros","5_paus","6_copas","7_espadas","8_ouros"]),
-        ("Trinca", "Três cartas do mesmo valor.",
-         ["7_ouros","7_paus","7_copas"]),
-        ("Dois Pares", "Dois pares diferentes.",
-         ["8_ouros","8_copas","K_paus","K_espadas"]),
-        ("Um Par", "Duas cartas do mesmo valor.",
-         ["5_ouros","5_copas"]),
-        ("Carta Alta", "Nenhuma combinação; vale a carta mais alta.",
-         ["A_ouros"])
-    ]
 
     rects_como.clear()
     rects_como["fechar"] = desenhar_botao_x()
 
-    linha_altura = 95
-    y_base = 110
-    for i, (nome, explicacao, exemplo) in enumerate(hierarquia):
-        linha_rect = pygame.Rect(60, y_base + i*linha_altura - 10, tela.get_width()-120, linha_altura-10)
-        pygame.draw.rect(tela, (45,45,45), linha_rect, border_radius=8)
+    btn_w, btn_h = 200, 55
+    padding = 40
+    bottom_reserved = 120
+    y_btn = tela.get_height() - btn_h - 40
+    rects_como["prev"] = desenhar_botao_lado("Anterior", padding, y_btn, (60,60,60), (90,90,90), largura=btn_w, altura=btn_h)
+    rects_como["next"] = desenhar_botao_lado("Próxima", tela.get_width()-padding-btn_w, y_btn, (60,60,60), (90,90,90), largura=btn_w, altura=btn_h)
+
+    if como_pagina == 0:
+        bloco = """
+COMO JOGAR POKER Texas Hold'em
+
+OBJETIVO:
+Formar a melhor mão de 5 cartas possível combinando suas 2 cartas com as 5 da mesa.
+
+VALOR DAS MÃOS (do mais forte pro mais fraco):
+10. Royal Flush (A K Q J 10 do mesmo naipe)
+9. Straight Flush (5 cartas em sequência do mesmo naipe)
+8. Quadra (4 cartas iguais)
+7. Full House (trinca + par)
+6. Flush (5 cartas do mesmo naipe)
+5. Straight (5 cartas em sequência)
+4. Trinca (3 cartas iguais)
+3. Dois Pares (2 pares diferentes)
+2. Um Par (2 cartas iguais)
+1. Carta Alta (quando ninguém formou nada melhor)
+
+COMO FUNCIONA A RODADA:
+1. Cada jogador recebe 2 cartas.
+2. São reveladas 5 cartas na mesa em etapas:
+   - Flop: 3 cartas
+   - Turn: +1 carta
+   - River: +1 carta
+3. No fim as cartas são reveladas e cada jogador monta a melhor mão de 5 cartas.
+4. Quem tiver a mão mais forte ganha.
+"""
+        linhas = textwrap.dedent(bloco).strip().splitlines()
+        x = 80
+        y = 110
+        espac = 32
+
+        max_height = y_btn - 60
+        max_lines = max(1, (max_height - y) // espac)
+        linhas_visiveis = linhas[:max_lines]
+        for i, linha in enumerate(linhas_visiveis):
+            if linha.strip() == "":
+                y += 10
+                continue
+            txt = fonte_pequena.render(linha, True, (230,230,230))
+            tela.blit(txt, (x, y + i*espac))
+
+        if len(linhas) > max_lines:
+            nota = fonte_pequena.render("...continue na próxima seção ou retorne ao menu para ver tudo", True, (200,200,200))
+            tela.blit(nota, (x, y + (max_lines-1)*espac + 40))
+
+        indicador = fonte_pequena.render(f"Seção 1 de 3 — Explicação", True, (180,180,180))
+        tela.blit(indicador, (tela.get_width()//2 - indicador.get_width()//2, y - 40))
+
+    elif como_pagina == 1:
+        titulo2 = fonte_pequena.render("Hierarquia das mãos — Exemplos", True, (220,220,220))
+        tela.blit(titulo2, (60, 80))
+
+        hierarquia = [
+            ("Royal Flush",
+             "A, K, Q, J, 10 do mesmo naipe. Imbatível.",
+             ["A_espadas","K_espadas","Q_espadas","J_espadas","10_espadas"]),
+            ("Straight Flush",
+             "Cinco cartas consecutivas do mesmo naipe.",
+             ["5_copas","6_copas","7_copas","8_copas","9_copas"]),
+            ("Quadra",
+             "Quatro cartas do mesmo valor.",
+             ["9_ouros","9_paus","9_copas","9_espadas"]),
+            ("Full House",
+             "Trinca + Par (ex.: Q-Q-Q e 2-2).",
+             ["Q_ouros","Q_paus","Q_copas","2_espadas","2_copas"]),
+            ("Flush",
+             "Cinco cartas do mesmo naipe, não consecutivas.",
+             ["2_paus","5_paus","9_paus","J_paus","K_paus"]),
+            ("Sequência","Cinco cartas consecutivas (naipes variados).",
+             ["4_ouros","5_paus","6_copas","7_espadas","8_ouros"]),
+            ("Trinca",
+             "Três cartas do mesmo valor.",
+             ["7_ouros","7_paus","7_copas"]),
+            ("Dois Pares",
+             "Dois pares diferentes.",
+             ["8_ouros","8_copas","K_paus","K_espadas"]),
+            ("Um Par",
+             "Duas cartas do mesmo valor.",
+             ["5_ouros","5_copas"]),
+            ("Carta Alta",
+             "Nenhuma combinação; vale a carta mais alta.",
+             ["A_ouros"])
+        ]
+
+        linha_altura = 95
+        y_base = 110
+
+        disponivel_altura = (y_btn - 60) - y_base
+        max_itens = max(1, disponivel_altura // linha_altura)
+        hier_visivel = hierarquia[:max_itens]
 
         x_cartas = 90
-        for j, chave in enumerate(exemplo):
-            if chave in cartas:
-                carta = pygame.transform.scale(cartas[chave], (50,70))
-                tela.blit(carta, (x_cartas + j*55, y_base + i*linha_altura))
+        x_texto = x_cartas + 5*55 + 30
 
-        texto = fonte_pequena.render(f"{i+1}. {nome} — {explicacao}", True, (230,230,230))
-        x_texto = x_cartas + len(exemplo)*55 + 30
-        tela.blit(texto, (x_texto, y_base + i*linha_altura + 20))
+        for i, (nome, explicacao, exemplo) in enumerate(hier_visivel):
+            linha_rect = pygame.Rect(60, y_base + i*linha_altura - 10, tela.get_width()-120, linha_altura-10)
+            pygame.draw.rect(tela, (45,45,45), linha_rect, border_radius=8)
 
-    credito = fonte_pequena.render(
-        'Pixel art poker cards: Vircon32 (Carra) — CC-BY 4.0 (OpenGameArt)',
-        True, (180,180,180)
-    )
-    tela.blit(credito, (tela.get_width()//2 - credito.get_width()//2, tela.get_height() - 40))
+            for j, chave in enumerate(exemplo):
+                if chave in cartas:
+                    carta = pygame.transform.scale(cartas[chave], (50,70))
+                    tela.blit(carta, (x_cartas + j*55, y_base + i*linha_altura))
+            combinado = f"{i+1}. {nome} — {explicacao}"
+            linhas_wrap = textwrap.wrap(combinado, width=80)
+            for k, l in enumerate(linhas_wrap):
+                texto = fonte_pequena.render(l, True, (230,230,230))
+                tela.blit(texto, (x_texto, y_base + i*linha_altura + 10 + k*22))
+
+        credito = fonte_pequena.render(
+            'Pixel art poker cards: Vircon32 (Carra) — CC-BY 4.0 (OpenGameArt)',
+            True, (180,180,180)
+        )
+        tela.blit(credito, (tela.get_width()//2 - credito.get_width()//2, tela.get_height() - 80))
+
+        indicador = fonte_pequena.render(f"Seção 2 de 3 — Exemplos", True, (180,180,180))
+        tela.blit(indicador, (tela.get_width()//2 - indicador.get_width()//2, 70))
+
+    else:
+        titulo3 = fonte_pequena.render("Baralho — Visualização completa", True, (220,220,220))
+        tela.blit(titulo3, (60, 80))
+
+        largura_carta = 71
+        altura_carta = 97
+        espacamento = 10
+
+        total_largura = len(VALORES) * largura_carta + (len(VALORES)-1)*espacamento
+        total_altura = len(NAIPES) * altura_carta + (len(NAIPES)-1)*espacamento
+
+        margem_x = (tela.get_width() - total_largura)//2
+        margem_y = 130
+
+        for linha, naipe in enumerate(NAIPES):
+            for coluna, valor in enumerate(VALORES):
+                chave = f"{valor}_{naipe}"
+                x = margem_x + coluna*(largura_carta+espacamento)
+                y = margem_y + linha*(altura_carta+espacamento)
+                tela.blit(cartas[chave], (x,y))
+
+        aviso = fonte_pequena.render(
+            'Pixel art poker cards por Vircon32 (Carra), CC-BY 4.0',
+            True, (200,200,200))
+        tela.blit(aviso, (tela.get_width()//2 - aviso.get_width()//2,
+                          tela.get_height()-40))
+
+        indicador = fonte_pequena.render(f"Seção 3 de 3 — Baralho", True, (180,180,180))
+        tela.blit(indicador, (tela.get_width()//2 - indicador.get_width()//2, 100))
+
     return "como_jogar"
 
 def desenhar_cartas():
@@ -440,7 +569,6 @@ def desenhar_confirmacao():
 
 rodando = True
 while rodando:
-    # Eventos
     for evento in pygame.event.get():
         if evento.type == pygame.QUIT:
             rodando = False
@@ -456,7 +584,6 @@ while rodando:
                 elif evento.key == pygame.K_BACKSPACE:
                     entrada_texto = entrada_texto[:-1]
                 else:
-                    # Adiciona caracteres imprimíveis
                     if len(evento.unicode) == 1 and not evento.unicode.isspace():
                         entrada_texto += evento.unicode
             elif evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
@@ -489,6 +616,13 @@ while rodando:
             elif estado == "como_jogar":
                 if rects_como.get("fechar") and rects_como["fechar"].collidepoint(evento.pos):
                     estado = "menu"
+                elif rects_como.get("prev") and rects_como["prev"].collidepoint(evento.pos):
+                    como_pagina = (como_pagina - 1) % 3
+                elif rects_como.get("next") and rects_como["next"].collidepoint(evento.pos):
+                    if como_pagina == 2:
+                        estado = "menu"
+                    else:
+                        como_pagina = (como_pagina + 1) % 3
 
             elif estado == "cartas":
                 if rects_cartas.get("fechar") and rects_cartas["fechar"].collidepoint(evento.pos):

@@ -194,10 +194,10 @@ def comparar_maos(jogador7, ia7):
 
 def nome_mao(rank_tuple):
     nomes = {
-        8: "Sequência de mesmo naipe",
+        8: "Straight Flush",
         7: "Quadra",
         6: "Full House",
-        5: "Cor (Flush)",
+        5: "Flush",
         4: "Sequência",
         3: "Trinca",
         2: "Dois Pares",
@@ -267,7 +267,7 @@ def desenhar_menu():
     tela.fill((0,0,0))
     desenhar_nome_canto()
     titulo = fonte.render("POKER 2D", True, (255,255,255))
-    subtitulo = fonte_pequena.render("Texas Hold'em — Versão demonstrativa", True, (180,180,180))
+    subtitulo = fonte_pequena.render("Texas Hold'em", True, (180,180,180))
     tela.blit(titulo, (tela.get_width()//2 - titulo.get_width()//2,
                        tela.get_height()//2 - 220))
     tela.blit(subtitulo, (tela.get_width()//2 - subtitulo.get_width()//2,
